@@ -11,7 +11,7 @@ import {
 
 import './editor';
 
-import { BoilerplateCardConfig } from './types';
+import { PostenCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 
@@ -19,23 +19,22 @@ import { localize } from './localize/localize';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  BOILERPLATE-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c  POSTEN-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
 
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: 'boilerplate-card',
-  name: 'Boilerplate Card',
-  description: 'A template custom card for you to create something awesome',
+  type: 'posten-card',
+  name: 'Posten Card',
+  description: 'A custom card that display Norwegian mail delivery days',
 });
 
-// TODO Name your custom element
-@customElement('boilerplate-card')
-export class BoilerplateCard extends LitElement {
+@customElement('posten-card')
+export class PostenCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('boilerplate-card-editor') as LovelaceCardEditor;
+    return document.createElement('posten-card-editor') as LovelaceCardEditor;
   }
 
   public static getStubConfig(): object {
@@ -44,9 +43,9 @@ export class BoilerplateCard extends LitElement {
 
   // TODO Add any properities that should cause your element to re-render here
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @property({ attribute: false }) private _config!: BoilerplateCardConfig;
+  @property({ attribute: false }) private _config!: PostenCardConfig;
 
-  public setConfig(config: BoilerplateCardConfig): void {
+  public setConfig(config: PostenCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config || config.show_error) {
       throw new Error(localize('common.invalid_configuration'));
@@ -57,7 +56,7 @@ export class BoilerplateCard extends LitElement {
     }
 
     this._config = {
-      name: 'Boilerplate',
+      name: 'Posten',
       ...config,
     };
   }
@@ -77,7 +76,7 @@ export class BoilerplateCard extends LitElement {
           hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         tabindex="0"
-        aria-label=${`Boilerplate: ${this._config.entity}`}
+        aria-label=${`Posten: ${this._config.entity}`}
       ></ha-card>
     `;
   }
