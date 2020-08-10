@@ -1,4 +1,13 @@
-import { LitElement, html, customElement, property, CSSResult, TemplateResult, css } from 'lit-element';
+import {
+  LitElement,
+  html,
+  customElement,
+  property,
+  internalProperty,
+  CSSResult,
+  TemplateResult,
+  css,
+} from 'lit-element';
 import {
   HomeAssistant,
   hasAction,
@@ -8,8 +17,10 @@ import {
   getLovelace,
   LovelaceCard,
 } from 'custom-card-helpers';
+import moment from 'moment-with-locales-es6';
 
 import './editor';
+import postenLogo from './images/posten.png';
 
 import { PostenCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
@@ -31,6 +42,47 @@ console.info(
   description: 'A custom card that display Norwegian mail delivery days',
 });
 
+String.prototype.replaceAll = function(this: string, search: string, replace: string): string {
+  return this.split(search).join(replace);
+};
+
+String.prototype.capitalize = function(): string {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+const months = {
+  januar: 'Jan',
+  februar: 'Feb',
+  mars: 'Mar',
+  april: 'Apr',
+  mai: 'May',
+  juni: 'Jun',
+  juli: 'Jul',
+  august: 'Aug',
+  september: 'Sep',
+  oktober: 'Oct',
+  november: 'Nov',
+  desember: 'Dec',
+};
+
+const toDate = (deliverDay: string): number => {
+  const segments = deliverDay.split(' ');
+  const date = segments[1].replace('.', '');
+  const month = months[segments[2]];
+  const year = new Date().getFullYear();
+
+  return Date.parse(month + ' ' + date + ', ' + year);
+};
+
+const formatDate = (locale: string, format = 'dddd D. MMMM', date: number): string =>
+  moment(date)
+    .locale(locale)
+    .format(format);
+
+const deliveryDayText = (isDeliveryDayToday: boolean, idx: number, deliveryDay: string): string => {
+  return isDeliveryDayToday && idx === 0 ? localize('common.today') : deliveryDay;
+};
+
 @customElement('posten-card')
 export class PostenCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
@@ -43,20 +95,18 @@ export class PostenCard extends LitElement {
 
   // TODO Add any properities that should cause your element to re-render here
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @property({ attribute: false }) private _config!: PostenCardConfig;
+  @internalProperty() private _config!: PostenCardConfig;
 
   public setConfig(config: PostenCardConfig): void {
-    // TODO Check for required fields and that they are of the proper format
-    if (!config || config.show_error) {
+    if (!config) {
       throw new Error(localize('common.invalid_configuration'));
     }
-
-    if (config.test_gui) {
-      getLovelace().setEditMode(true);
+    if (!config.entity) {
+      throw new Error(localize('common.missing_sensor'));
     }
 
     this._config = {
-      name: 'Posten',
+      name: 'Posten leveringsdager',
       ...config,
     };
   }
@@ -67,9 +117,26 @@ export class PostenCard extends LitElement {
       return this.showWarning(localize('common.show_warning'));
     }
 
+    const numOfDays = this._config.num_of_days || 6;
+    const isDeliveryToday = this.hass.states[this._config.entity].state.includes('i dag');
+    const deliveryDays = this.hass.states[this._config.entity].state
+      .replaceAll('[', '')
+      .replaceAll(']', '')
+      .replaceAll("'", '')
+      .replaceAll('i dag', '')
+      .split(',')
+      .slice(0, numOfDays)
+      .map(s => s.trim())
+      .map(toDate)
+      .map(d => formatDate(this.hass.language, this._config.date_format, d))
+      .map((d, idx: number) => deliveryDayText(isDeliveryToday, idx, d))
+      .map(d => d.capitalize());
+    const icon = isDeliveryToday
+      ? this._config.delivery_today_icon || 'mdi:mailbox-open'
+      : this._config.no_delivery_today_icon || 'mdi:mailbox';
+
     return html`
       <ha-card
-        .header=${this._config.name}
         @action=${this._handleAction}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this._config.hold_action),
@@ -77,7 +144,23 @@ export class PostenCard extends LitElement {
         })}
         tabindex="0"
         aria-label=${`Posten: ${this._config.entity}`}
-      ></ha-card>
+      >
+        <div class="card-header" style="display: flex; align-items: center">
+          <img src="${postenLogo}" style="margin-right: 20px" />
+          ${this._config.name}
+          <span style="flex: 1; text-align: right">
+            <ha-icon icon="${icon}"></ha-icon>
+          </span>
+        </div>
+        <div class="table" style="background-color: #fff; color: #000">
+          ${deliveryDays.map(
+            item =>
+              html`
+                <div style="padding: 8px">${item}</div>
+              `,
+          )}
+        </div>
+      </ha-card>
     `;
   }
 
@@ -107,6 +190,24 @@ export class PostenCard extends LitElement {
   }
 
   static get styles(): CSSResult {
-    return css``;
+    return css`
+      .table div:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      card-header {
+        display: flex;
+        align-items: center;
+      }
+      ha-card {
+        color: #fff;
+        background-color: #e32d22;
+      }
+      ha-card img {
+        vertical-align: middle;
+      }
+      delivery-days {
+        background-color: #fff;
+      }
+    `;
   }
 }

@@ -5,6 +5,7 @@ import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
+import image from '@rollup/plugin-image';
 
 const dev = process.env.ROLLUP_WATCH;
 
@@ -26,6 +27,7 @@ const plugins = [
   babel({
     exclude: 'node_modules/**',
   }),
+  image(),
   dev && serve(serveopts),
   !dev && terser(),
 ];

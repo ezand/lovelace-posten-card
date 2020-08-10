@@ -15,15 +15,18 @@
   "author": "Eirik Sand <eiriksand@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/moment": "^2.13.0",
     "custom-card-helpers": "^1.6.3",
     "home-assistant-js-websocket": "^4.4.0",
     "lit-element": "^2.2.1",
-    "lit-html": "^1.1.2"
+    "lit-html": "^1.1.2",
+    "moment-with-locales-es6": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-decorators": "^7.4.0",
+    "@rollup/plugin-image": "^2.0.5",
     "@rollup/plugin-json": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
