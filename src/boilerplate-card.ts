@@ -1,7 +1,6 @@
-import { LitElement, html, customElement, property, CSSResult, TemplateResult, css, PropertyValues } from 'lit-element';
+import { LitElement, html, customElement, property, CSSResult, TemplateResult, css } from 'lit-element';
 import {
   HomeAssistant,
-  hasConfigOrEntityChanged,
   hasAction,
   ActionHandlerEvent,
   handleAction,
@@ -44,8 +43,8 @@ export class BoilerplateCard extends LitElement {
   }
 
   // TODO Add any properities that should cause your element to re-render here
-  @property() public hass!: HomeAssistant;
-  @property() private _config!: BoilerplateCardConfig;
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @property({ attribute: false }) private _config!: BoilerplateCardConfig;
 
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
@@ -61,10 +60,6 @@ export class BoilerplateCard extends LitElement {
       name: 'Boilerplate',
       ...config,
     };
-  }
-
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
-    return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
   protected render(): TemplateResult | void {
