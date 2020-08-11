@@ -17,12 +17,13 @@ import {
   getLovelace,
   LovelaceCard,
 } from 'custom-card-helpers';
+import { Moment } from 'moment';
 import moment from 'moment-with-locales-es6';
 
 import './editor';
 import postenLogo from './images/posten.png';
 
-import { PostenCardConfig } from './types';
+import { PostenCardConfig, DeliveryDay } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 
@@ -51,36 +52,65 @@ String.prototype.capitalize = function(): string {
 };
 
 const months = {
-  januar: 'Jan',
-  februar: 'Feb',
-  mars: 'Mar',
-  april: 'Apr',
-  mai: 'May',
-  juni: 'Jun',
-  juli: 'Jul',
-  august: 'Aug',
-  september: 'Sep',
-  oktober: 'Oct',
-  november: 'Nov',
-  desember: 'Dec',
+  januar: 0,
+  februar: 1,
+  mars: 2,
+  april: 3,
+  mai: 4,
+  juni: 5,
+  juli: 6,
+  august: 7,
+  september: 8,
+  oktober: 9,
+  november: 10,
+  desember: 11,
 };
 
-const toDate = (deliverDay: string): number => {
+const toDeliveryDay = (
+  isDeliveryTodayOrTomorrow: boolean,
+  idx: number,
+  today: Moment,
+  deliverDay: string,
+): DeliveryDay => {
   const segments = deliverDay.split(' ');
   const date = segments[1].replace('.', '');
   const month = months[segments[2]];
-  const year = new Date().getFullYear();
+  const deliveyDayMoment = moment()
+    .month(month)
+    .date(date);
+  const numOfDaysUntil = moment.duration(deliveyDayMoment.startOf('day').diff(today.startOf('day'))).days();
+  const daysUntil: string | undefined =
+    isDeliveryTodayOrTomorrow && idx === 0 ? undefined : localize('common.days_until', 'DAYS_UNTIL', numOfDaysUntil);
 
-  return Date.parse(month + ' ' + date + ', ' + year);
+  return {
+    day: deliveyDayMoment,
+    daysUntil: daysUntil,
+  };
 };
 
-const formatDate = (locale: string, format = 'dddd D. MMMM', date: number): string =>
-  moment(date)
-    .locale(locale)
-    .format(format);
+const formatDate = (locale: string, format = 'dddd D. MMMM', deliveryday: DeliveryDay): DeliveryDay => ({
+  ...deliveryday,
+  dayFormatted: deliveryday.day.locale(locale).format(format),
+});
 
-const deliveryDayText = (isDeliveryDayToday: boolean, idx: number, deliveryDay: string): string => {
-  return isDeliveryDayToday && idx === 0 ? localize('common.today') : deliveryDay;
+const deliveryDayText = (
+  isDeliveryDayToday: boolean,
+  isDeliveryTomorrow: boolean,
+  idx: number,
+  deliveryDay: DeliveryDay,
+): DeliveryDay => {
+  let text: string;
+  if (isDeliveryDayToday && idx === 0) {
+    text = localize('common.today');
+  } else if (isDeliveryTomorrow && idx === 0) {
+    text = localize('common.tomorrow');
+  } else {
+    text = deliveryDay.dayFormatted || 'N/A';
+  }
+  return {
+    ...deliveryDay,
+    dayText: text.capitalize(),
+  };
 };
 
 @customElement('posten-card')
@@ -106,7 +136,7 @@ export class PostenCard extends LitElement {
     }
 
     this._config = {
-      name: 'Posten leveringsdager',
+      name: localize('common.delivery_days'),
       ...config,
     };
   }
@@ -119,18 +149,20 @@ export class PostenCard extends LitElement {
 
     const numOfDays = this._config.num_of_days || 6;
     const isDeliveryToday = this.hass.states[this._config.entity].state.includes('i dag');
+    const isDeliveryTomorrow = this.hass.states[this._config.entity].state.includes('i morgen');
+    const today = moment();
     const deliveryDays = this.hass.states[this._config.entity].state
       .replaceAll('[', '')
       .replaceAll(']', '')
       .replaceAll("'", '')
       .replaceAll('i dag', '')
+      .replaceAll('i morgen', '')
       .split(',')
       .slice(0, numOfDays)
       .map(s => s.trim())
-      .map(toDate)
+      .map((s, idx) => toDeliveryDay(isDeliveryToday || isDeliveryTomorrow, idx, today, s))
       .map(d => formatDate(this.hass.language, this._config.date_format, d))
-      .map((d, idx: number) => deliveryDayText(isDeliveryToday, idx, d))
-      .map(d => d.capitalize());
+      .map((d, idx: number) => deliveryDayText(isDeliveryToday, isDeliveryTomorrow, idx, d));
     const icon = isDeliveryToday
       ? this._config.delivery_today_icon || 'mdi:mailbox-open'
       : this._config.no_delivery_today_icon || 'mdi:mailbox';
@@ -154,9 +186,14 @@ export class PostenCard extends LitElement {
         </div>
         <div class="table" style="background-color: #fff; color: #000">
           ${deliveryDays.map(
-            item =>
+            deliveryDay =>
               html`
-                <div style="padding: 8px">${item}</div>
+                <div style="display: flex; padding: 8px">
+                  <span>${deliveryDay.dayText}</span>
+                  <span style="flex: 1; text-align: right; font-size: 0.8em; color: gray"
+                    >${deliveryDay.daysUntil}</span
+                  >
+                </div>
               `,
           )}
         </div>
@@ -204,9 +241,6 @@ export class PostenCard extends LitElement {
       }
       ha-card img {
         vertical-align: middle;
-      }
-      delivery-days {
-        background-color: #fff;
       }
     `;
   }

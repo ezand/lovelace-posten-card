@@ -4,6 +4,9 @@
     "invalid_configuration": "Invalid configuration",
     "show_warning": "Show Warning",
     "missing_sensor": "Missing posten sensor",
-    "today": "Today"
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "days_until": "In DAYS_UNTIL days",
+    "delivery_days": "Delivery days"
   }
 }

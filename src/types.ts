@@ -1,4 +1,5 @@
 import { ActionConfig, LovelaceCardConfig } from 'custom-card-helpers';
+import { Moment } from 'moment';
 
 declare global {
   interface String {
@@ -20,4 +21,11 @@ export interface PostenCardConfig extends LovelaceCardConfig {
   num_of_days: number;
   delivery_today_icon?: string;
   no_delivery_today_icon?: string;
+}
+
+export interface DeliveryDay {
+  day: Moment;
+  dayFormatted?: string;
+  dayText?: string;
+  daysUntil?: string;
 }

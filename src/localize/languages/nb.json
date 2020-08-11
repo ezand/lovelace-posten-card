@@ -4,6 +4,9 @@
     "invalid_configuration": "Ikke gyldig konfiguration",
     "show_warning": "Vis advarsel",
     "missing_sensor": "Mangler posten sensor",
-    "today": "I dag"
+    "today": "I dag",
+    "tomorrow": "I morgen",
+    "days_until": "Om DAYS_UNTIL dager",
+    "delivery_days": "Leveringsdager"
   }
 }
