@@ -177,22 +177,20 @@ export class PostenCard extends LitElement {
         tabindex="0"
         aria-label=${`Posten: ${this._config.entity}`}
       >
-        <div class="card-header" style="display: flex; align-items: center">
-          <img src="${postenLogo}" style="margin-right: 20px" />
+        <div class="card-header">
+          <img class="logo" src="${postenLogo}" />
           ${this._config.name}
-          <span style="flex: 1; text-align: right">
+          <span class="icon">
             <ha-icon icon="${icon}"></ha-icon>
           </span>
         </div>
-        <div class="table" style="background-color: #fff; color: #000">
+        <div class="deliveryDays">
           ${deliveryDays.map(
             deliveryDay =>
               html`
-                <div style="display: flex; padding: 8px">
+                <div class="deliveryDay">
                   <span>${deliveryDay.dayText}</span>
-                  <span style="flex: 1; text-align: right; font-size: 0.8em; color: gray"
-                    >${deliveryDay.daysUntil}</span
-                  >
+                  <span class="daysUntil">${deliveryDay.daysUntil}</span>
                 </div>
               `,
           )}
@@ -228,10 +226,31 @@ export class PostenCard extends LitElement {
 
   static get styles(): CSSResult {
     return css`
-      .table div:nth-child(even) {
+      .logo {
+        margin-right: 20px;
+      }
+      .icon {
+        flex: 1;
+        text-align: right;
+      }
+      .deliveryDays {
+        background-color: #fff;
+        color: #000;
+      }
+      .deliveryDays div:nth-child(even) {
         background-color: #f2f2f2;
       }
-      card-header {
+      .deliveryDay {
+        display: flex;
+        padding: 8px;
+      }
+      .deliveryDay .daysUntil {
+        flex: 1;
+        text-align: right;
+        font-size: 0.8em;
+        color: gray;
+      }
+      .card-header {
         display: flex;
         align-items: center;
       }
