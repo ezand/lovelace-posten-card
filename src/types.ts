@@ -21,6 +21,9 @@ export interface PostenCardConfig extends LovelaceCardConfig {
   num_of_days: number;
   delivery_today_icon?: string;
   no_delivery_today_icon?: string;
+  hide_delivery_today_icon?: boolean;
+  hide_logo?: boolean;
+  use_posten_background_color?: boolean;
 }
 
 export interface DeliveryDay {

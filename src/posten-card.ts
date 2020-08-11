@@ -137,6 +137,7 @@ export class PostenCard extends LitElement {
 
     this._config = {
       name: localize('common.delivery_days'),
+      use_posten_background_color: true,
       ...config,
     };
   }
@@ -166,9 +167,14 @@ export class PostenCard extends LitElement {
     const icon = isDeliveryToday
       ? this._config.delivery_today_icon || 'mdi:mailbox-open'
       : this._config.no_delivery_today_icon || 'mdi:mailbox';
+    const isHideIcon = this._config.hide_delivery_today_icon && this._config.hide_delivery_today_icon === true;
+    const isHideLogo = this._config.hide_logo && this._config.hide_logo === true;
+    const isUsePostenBackgroundColor =
+      this._config.use_posten_background_color && this._config.use_posten_background_color === true;
 
     return html`
       <ha-card
+        style="${isUsePostenBackgroundColor ? 'background-color: #e32d22; color: #fff' : ''}"
         @action=${this._handleAction}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this._config.hold_action),
@@ -178,11 +184,19 @@ export class PostenCard extends LitElement {
         aria-label=${`Posten: ${this._config.entity}`}
       >
         <div class="card-header">
-          <img class="logo" src="${postenLogo}" />
+          ${!isHideLogo
+            ? html`
+                <img class="logo" src="${postenLogo}" />
+              `
+            : html``}
           ${this._config.name}
-          <span class="icon">
-            <ha-icon icon="${icon}"></ha-icon>
-          </span>
+          ${!isHideIcon
+            ? html`
+                <span class="icon">
+                  <ha-icon icon="${icon}"></ha-icon>
+                </span>
+              `
+            : html``}
         </div>
         <div class="deliveryDays">
           ${deliveryDays.map(
@@ -253,10 +267,6 @@ export class PostenCard extends LitElement {
       .card-header {
         display: flex;
         align-items: center;
-      }
-      ha-card {
-        color: #fff;
-        background-color: #e32d22;
       }
       ha-card img {
         vertical-align: middle;
