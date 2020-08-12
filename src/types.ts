@@ -27,8 +27,8 @@ export interface PostenCardConfig extends LovelaceCardConfig {
 }
 
 export interface DeliveryDay {
-  day: Moment;
-  dayFormatted?: string;
-  dayText?: string;
-  daysUntil?: string;
+  date: Moment;
+  formattedDate: string;
+  daysUntilDelivery: number;
+  deliveryToday: boolean;
 }
