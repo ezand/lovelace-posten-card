@@ -21,7 +21,13 @@ const months = {
   desember: 11,
 };
 
-const defaultDateFormat = 'dddd D. MMMM';
+export const defaultNumOfDays = 6;
+export const defaultDateFormat = 'dddd D. MMMM';
+export const defaultDeliveryTodayIcon = 'mdi:mailbox-open';
+export const defaultNoDeliveryTodayIcon = 'mdi:mailbox';
+export const defaultHideLogo = false;
+export const defaultHideDeliveryTodayIcon = false;
+export const defaultUsePostenBackgroundColor = true;
 
 const daysUntil = (today: Moment, deliveryDay: Moment): number =>
   moment.duration(deliveryDay.startOf('day').diff(today.startOf('day'))).days();
@@ -48,11 +54,12 @@ export const deliveryDayText = (idx: number, deliveryDay: Moment, formattedDate:
 };
 
 const parseDeliveryDay = (deliveryDay: string, locale: string, config: PostenCardConfig): DeliveryDay => {
+  const dateFormat = !config.date_format || config.date_format.trim() === '' ? defaultDateFormat : config.date_format;
   const segments = deliveryDay.split(' ');
   const deliveryDayMoment = moment()
     .month(months[segments[2]])
     .date(segments[1]);
-  const formattedDate = dateUtils.formatDate(locale, config.date_format || defaultDateFormat, deliveryDayMoment);
+  const formattedDate = dateUtils.formatDate(locale, dateFormat, deliveryDayMoment);
   const daysUntilDelivery = daysUntil(moment(), deliveryDayMoment);
   const isDeliveryToday = dateUtils.isDeliveryToday(deliveryDayMoment);
 

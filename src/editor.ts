@@ -1,113 +1,47 @@
 import { LitElement, html, customElement, property, TemplateResult, CSSResult, css } from 'lit-element';
-import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
+import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
 
 import { PostenCardConfig } from './types';
+import * as postenUtils from './posten-utils';
 
 const options = {
-  required: {
-    icon: 'tune',
-    name: 'Required',
-    secondary: 'Required options for this card to function',
-    show: true,
+  entity: {
+    name: 'Entity',
   },
-  actions: {
-    icon: 'gesture-tap-hold',
-    name: 'Actions',
-    secondary: 'Perform actions based on tapping/clicking',
-    show: false,
-    options: {
-      tap: {
-        icon: 'gesture-tap',
-        name: 'Tap',
-        secondary: 'Set the action to perform on tap',
-        show: false,
-      },
-      hold: {
-        icon: 'gesture-tap-hold',
-        name: 'Hold',
-        secondary: 'Set the action to perform on hold',
-        show: false,
-      },
-      double_tap: {
-        icon: 'gesture-double-tap',
-        name: 'Double Tap',
-        secondary: 'Set the action to perform on double tap',
-        show: false,
-      },
-    },
+  num_of_days: {
+    name: 'Number of days to display',
   },
-  appearance: {
-    icon: 'palette',
-    name: 'Appearance',
-    secondary: 'Customize the name, icon, etc',
-    show: false,
+  date_format: {
+    name: 'Date format',
+  },
+  delivery_today_icon: {
+    name: 'Delivery today icon',
+  },
+  no_delivery_today_icon: {
+    name: 'No delivery today icon',
+  },
+  hide_delivery_today_icon: {
+    name: 'Hide delivery today icon?',
+    default: postenUtils.defaultHideDeliveryTodayIcon,
+  },
+  hide_logo: {
+    name: 'Hide Posten logo?',
+    default: postenUtils.defaultHideLogo,
+  },
+  use_posten_background_color: {
+    name: 'Use Posten colored background?',
+    default: postenUtils.defaultUsePostenBackgroundColor,
   },
 };
 
 @customElement('posten-card-editor')
 export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
-  @property() public hass?: HomeAssistant;
-  @property() private _config?: PostenCardConfig;
-  @property() private _toggle?: boolean;
+  @property({ attribute: false }) public hass?: HomeAssistant;
+  @property({ attribute: false }) private _config?: PostenCardConfig;
+  @property({ attribute: false }) private _toggle?: boolean;
 
   public setConfig(config: PostenCardConfig): void {
     this._config = config;
-  }
-
-  get _name(): string {
-    if (this._config) {
-      return this._config.name || '';
-    }
-
-    return '';
-  }
-
-  get _entity(): string {
-    if (this._config) {
-      return this._config.entity || '';
-    }
-
-    return '';
-  }
-
-  get _show_warning(): boolean {
-    if (this._config) {
-      return this._config.show_warning || false;
-    }
-
-    return false;
-  }
-
-  get _show_error(): boolean {
-    if (this._config) {
-      return this._config.show_error || false;
-    }
-
-    return false;
-  }
-
-  get _tap_action(): ActionConfig {
-    if (this._config) {
-      return this._config.tap_action || { action: 'more-info' };
-    }
-
-    return { action: 'more-info' };
-  }
-
-  get _hold_action(): ActionConfig {
-    if (this._config) {
-      return this._config.hold_action || { action: 'none' };
-    }
-
-    return { action: 'none' };
-  }
-
-  get _double_tap_action(): ActionConfig {
-    if (this._config) {
-      return this._config.double_tap_action || { action: 'none' };
-    }
-
-    return { action: 'none' };
   }
 
   protected render(): TemplateResult | void {
@@ -116,131 +50,106 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
     }
 
     // You can restrict on domain type
-    const entities = Object.keys(this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === 'sun');
+    const entities = Object.keys(this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === 'sensor');
+
+    const deliveryTodayIcon = this._config?.delivery_today_icon || postenUtils.defaultDeliveryTodayIcon;
+    const noDeliveryTodayIcon = this._config?.no_delivery_today_icon || postenUtils.defaultNoDeliveryTodayIcon;
+
+    const _entity = (): string => {
+      if (this._config) {
+        return this._config.entity;
+      }
+      return '';
+    };
 
     return html`
       <div class="card-config">
-        <div class="option" @click=${this._toggleOption} .option=${'required'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.required.icon}`}></ha-icon>
-            <div class="title">${options.required.name}</div>
-          </div>
-          <div class="secondary">${options.required.secondary}</div>
+        <paper-dropdown-menu label="Entity (Required)" @value-changed=${this._valueChanged} .configValue=${'entity'}>
+          <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(_entity())}>
+            ${entities.map(entity => {
+              return html`
+                <paper-item>${entity}</paper-item>
+              `;
+            })}
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-input
+          @keyup=${this._valueChanged}
+          always-float-label
+          label=${options.num_of_days.name}
+          value=${this._config?.num_of_days || ''}
+          .configValue=${'num_of_days'}
+        ></paper-input>
+
+        <paper-input
+          @keyup=${this._valueChanged}
+          always-float-label
+          label=${options.date_format.name}
+          value=${this._config?.date_format || ''}
+          .configValue=${'date_format'}
+        ></paper-input>
+
+        <div class="icon-input">
+          <paper-input
+            @keyup=${this._valueChanged}
+            always-float-label
+            label=${options.delivery_today_icon.name}
+            value=${this._config?.delivery_today_icon || ''}
+            .configValue=${'delivery_today_icon'}
+          ></paper-input>
+          <ha-icon icon=${deliveryTodayIcon}></ha-icon>
         </div>
-        ${options.required.show
-          ? html`
-              <div class="values">
-                <paper-dropdown-menu
-                  label="Entity (Required)"
-                  @value-changed=${this._valueChanged}
-                  .configValue=${'entity'}
-                >
-                  <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(this._entity)}>
-                    ${entities.map(entity => {
-                      return html`
-                        <paper-item>${entity}</paper-item>
-                      `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
-              </div>
-            `
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'actions'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.actions.icon}`}></ha-icon>
-            <div class="title">${options.actions.name}</div>
-          </div>
-          <div class="secondary">${options.actions.secondary}</div>
+
+        <div class="icon-input">
+          <paper-input
+            @keyup=${this._valueChanged}
+            always-float-label
+            label=${options.no_delivery_today_icon.name}
+            value=${this._config?.no_delivery_today_icon || ''}
+            .configValue=${'no_delivery_today_icon'}
+          ></paper-input>
+          <ha-icon icon=${noDeliveryTodayIcon}></ha-icon>
         </div>
-        ${options.actions.show
-          ? html`
-              <div class="values">
-                <div class="option" @click=${this._toggleAction} .option=${'tap'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.tap.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.tap.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.tap.secondary}</div>
-                </div>
-                ${options.actions.options.tap.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-                <div class="option" @click=${this._toggleAction} .option=${'hold'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.hold.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.hold.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.hold.secondary}</div>
-                </div>
-                ${options.actions.options.hold.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-                <div class="option" @click=${this._toggleAction} .option=${'double_tap'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.double_tap.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.double_tap.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.double_tap.secondary}</div>
-                </div>
-                ${options.actions.options.double_tap.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-              </div>
-            `
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.appearance.icon}`}></ha-icon>
-            <div class="title">${options.appearance.name}</div>
-          </div>
-          <div class="secondary">${options.appearance.secondary}</div>
+
+        <div class="checkbox-input">
+          <iron-label for="hideDeliveryTodayIcon">${options.hide_delivery_today_icon.name}</iron-label>
+          <ha-switch
+            id="hideDeliveryTodayIcon"
+            aria-label=${`Hide delivery today icon ${this._config?.hide_delivery_today_icon ? 'off' : 'on'}`}
+            .checked=${this._config?.hide_delivery_today_icon == undefined
+              ? postenUtils.defaultHideDeliveryTodayIcon
+              : this._config.hide_delivery_today_icon}
+            .configValue=${'hide_delivery_today_icon'}
+            @change=${this._valueChanged}
+          ></ha-switch>
         </div>
-        ${options.appearance.show
-          ? html`
-              <div class="values">
-                <paper-input
-                  label="Name (Optional)"
-                  .value=${this._name}
-                  .configValue=${'name'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <br />
-                <ha-switch
-                  aria-label=${`Toggle warning ${this._show_warning ? 'off' : 'on'}`}
-                  .checked=${this._show_warning !== false}
-                  .configValue=${'show_warning'}
-                  @change=${this._valueChanged}
-                  >Show Warning?</ha-switch
-                >
-                <ha-switch
-                  aria-label=${`Toggle error ${this._show_error ? 'off' : 'on'}`}
-                  .checked=${this._show_error !== false}
-                  .configValue=${'show_error'}
-                  @change=${this._valueChanged}
-                  >Show Error?</ha-switch
-                >
-              </div>
-            `
-          : ''}
+
+        <div class="checkbox-input">
+          <iron-label for="hideLogoCB">${options.hide_logo.name}</iron-label>
+          <ha-switch
+            id="hideLogoCB"
+            aria-label=${`Hide logo ${this._config?.hide_logo ? 'off' : 'on'}`}
+            .checked=${this._config?.hide_logo == undefined ? postenUtils.defaultHideLogo : this._config.hide_logo}
+            .configValue=${'hide_logo'}
+            @change=${this._valueChanged}
+          ></ha-switch>
+        </div>
+
+        <div class="checkbox-input">
+          <iron-label for="usePostenBackgroundColorCB">${options.use_posten_background_color.name}</iron-label>
+          <ha-switch
+            id="usePostenBackgroundColorCB"
+            aria-label=${`Use Posten background color ${this._config?.use_posten_background_color ? 'off' : 'on'}`}
+            .checked=${this._config?.use_posten_background_color == undefined
+              ? postenUtils.defaultUsePostenBackgroundColor
+              : this._config.use_posten_background_color}
+            .configValue=${'use_posten_background_color'}
+            @change=${this._valueChanged}
+          ></ha-switch>
+        </div>
       </div>
     `;
-  }
-
-  private _toggleAction(ev): void {
-    this._toggleThing(ev, options.actions.options);
   }
 
   private _toggleOption(ev): void {
@@ -261,16 +170,33 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
       return;
     }
     const target = ev.target;
-    if (this[`_${target.configValue}`] === target.value) {
-      return;
-    }
     if (target.configValue) {
-      if (target.value === '') {
-        delete this._config[target.configValue];
+      const targetValue = target.value !== undefined ? target.value : target.checked;
+      if (
+        targetValue === '' ||
+        (options[target.configValue].default !== undefined && options[target.configValue].default == targetValue)
+      ) {
+        const filterAwayKeys = [target.configValue];
+        const filtered = Object.keys(this._config)
+          .filter(key => !filterAwayKeys.includes(key))
+          .reduce(
+            (obj, key) => {
+              return {
+                ...obj,
+                [key]: this._config ? this._config[key] : '',
+              };
+            },
+            {
+              type: this._config.type,
+              entity: this._config.entity,
+            },
+          );
+
+        this._config = filtered;
       } else {
         this._config = {
           ...this._config,
-          [target.configValue]: target.checked !== undefined ? target.checked : target.value,
+          [target.configValue]: target.checked !== undefined ? target.checked : target.value || false,
         };
       }
     }
@@ -304,6 +230,24 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
       }
       ha-switch {
         padding-bottom: 8px;
+      }
+      .icon-input {
+        display: flex;
+        width: 100%;
+        align-items: center;
+      }
+      .icon-input paper-input {
+        flex: 1;
+      }
+      .checkbox-input {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding-bottom: 10px;
+        padding-top: 10px;
+      }
+      .checkbox-input iron-label {
+        flex: 1;
       }
     `;
   }

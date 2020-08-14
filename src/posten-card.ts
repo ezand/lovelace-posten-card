@@ -25,8 +25,6 @@ console.info(
   'color: white; font-weight: bold; background: dimgray',
 );
 
-const defaultNumOfDays = 6;
-
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: 'posten-card',
@@ -77,7 +75,7 @@ export class PostenCard extends LitElement {
     }
 
     const postenDeliveryDays = this.hass.states[this._config.entity].state;
-    const daysToDisplay = this._config.num_of_days || defaultNumOfDays;
+    const daysToDisplay = this._config.num_of_days || postenUtils.defaultNumOfDays;
     const deliveryDays = postenUtils.parseDeliveryDays(
       daysToDisplay,
       postenDeliveryDays,
@@ -85,8 +83,8 @@ export class PostenCard extends LitElement {
       this._config,
     );
     const icon = deliveryDays.some(d => d.deliveryToday)
-      ? this._config.delivery_today_icon || 'mdi:mailbox-open'
-      : this._config.no_delivery_today_icon || 'mdi:mailbox';
+      ? this._config.delivery_today_icon || postenUtils.defaultDeliveryTodayIcon
+      : this._config.no_delivery_today_icon || postenUtils.defaultNoDeliveryTodayIcon;
     const isHideIcon = this._config.hide_delivery_today_icon && this._config.hide_delivery_today_icon === true;
     const isHideLogo = this._config.hide_logo && this._config.hide_logo === true;
     const isUsePostenBackgroundColor =
