@@ -56,10 +56,8 @@ export const deliveryDayText = (idx: number, deliveryDay: Moment, formattedDate:
 const parseDeliveryDay = (deliveryDay: string, locale: string, config: PostenCardConfig): DeliveryDay => {
   const dateFormat = !config.date_format || config.date_format.trim() === '' ? defaultDateFormat : config.date_format;
   const segments = deliveryDay.split(' ');
-  const deliveryDayMoment = moment()
-    .month(months[segments[2]])
-    .date(segments[1]);
-  const formattedDate = dateUtils.formatDate(locale, dateFormat, deliveryDayMoment);
+  const deliveryDayMoment = moment().month(months[segments[2]]).date(segments[1]);
+  const formattedDate = dateUtils.formatDate(locale, dateFormat, deliveryDayMoment).capitalize();
   const daysUntilDelivery = daysUntil(moment(), deliveryDayMoment);
   const isDeliveryToday = dateUtils.isDeliveryToday(deliveryDayMoment);
 
@@ -86,5 +84,5 @@ export const parseDeliveryDays = (
     .replaceAll('.', '')
     .split(',')
     .slice(0, numDays)
-    .map(s => parseDeliveryDay(s.trim(), language, config));
+    .map((s) => parseDeliveryDay(s.trim(), language, config));
 };

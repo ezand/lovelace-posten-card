@@ -1,12 +1,5 @@
 import { LitElement, html, customElement, property, internalProperty, CSSResult, TemplateResult } from 'lit-element';
-import {
-  HomeAssistant,
-  hasAction,
-  ActionHandlerEvent,
-  handleAction,
-  LovelaceCardEditor,
-  LovelaceCard,
-} from 'custom-card-helpers';
+import { HomeAssistant, hasAction, ActionHandlerEvent, handleAction, LovelaceCardEditor } from 'custom-card-helpers';
 
 import './editor';
 import { PostenCardConfig } from './types';
@@ -32,11 +25,11 @@ console.info(
   description: 'A custom card that displays Norwegian mail delivery days',
 });
 
-String.prototype.replaceAll = function(this: string, search: string, replace: string): string {
+String.prototype.replaceAll = function (search: string, replace: string): string {
   return this.split(search).join(replace);
 };
 
-String.prototype.capitalize = function(): string {
+String.prototype.capitalize = function (): string {
   return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
@@ -46,7 +39,7 @@ export class PostenCard extends LitElement {
     return document.createElement('posten-card-editor') as LovelaceCardEditor;
   }
 
-  public static getStubConfig(): object {
+  public static getStubConfig(): Record<string, unknown> {
     return {};
   }
 
@@ -82,7 +75,7 @@ export class PostenCard extends LitElement {
       this.hass.language,
       this._config,
     );
-    const icon = deliveryDays.some(d => d.deliveryToday)
+    const icon = deliveryDays.some((d) => d.deliveryToday)
       ? this._config.delivery_today_icon || postenUtils.defaultDeliveryTodayIcon
       : this._config.no_delivery_today_icon || postenUtils.defaultNoDeliveryTodayIcon;
     const isHideIcon = this._config.hide_delivery_today_icon && this._config.hide_delivery_today_icon === true;
@@ -102,12 +95,7 @@ export class PostenCard extends LitElement {
         aria-label=${`Posten: ${this._config.entity}`}
       >
         <div class="card-header">
-          ${!isHideLogo
-            ? html`
-                <img class="logo" src="${postenLogo}" />
-              `
-            : html``}
-          ${this._config.name}
+          ${!isHideLogo ? html` <img class="logo" src="${postenLogo}" /> ` : html``} ${this._config.name}
           ${!isHideIcon
             ? html`
                 <span class="icon">
@@ -138,22 +126,7 @@ export class PostenCard extends LitElement {
   }
 
   private showWarning(warning: string): TemplateResult {
-    return html`
-      <hui-warning>${warning}</hui-warning>
-    `;
-  }
-
-  private showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card') as LovelaceCard;
-    errorCard.setConfig({
-      type: 'error',
-      error,
-      origConfig: this._config,
-    });
-
-    return html`
-      ${errorCard}
-    `;
+    return html`<hui-warning>${warning}</hui-warning>`;
   }
 
   static get styles(): CSSResult {

@@ -50,7 +50,7 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
     }
 
     // You can restrict on domain type
-    const entities = Object.keys(this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === 'sensor');
+    const entities = Object.keys(this.hass.states).filter((eid) => eid.substr(0, eid.indexOf('.')) === 'sensor');
 
     const deliveryTodayIcon = this._config?.delivery_today_icon || postenUtils.defaultDeliveryTodayIcon;
     const noDeliveryTodayIcon = this._config?.no_delivery_today_icon || postenUtils.defaultNoDeliveryTodayIcon;
@@ -66,10 +66,8 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
       <div class="card-config">
         <paper-dropdown-menu label="Entity (Required)" @value-changed=${this._valueChanged} .configValue=${'entity'}>
           <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(_entity())}>
-            ${entities.map(entity => {
-              return html`
-                <paper-item>${entity}</paper-item>
-              `;
+            ${entities.map((entity) => {
+              return html`<paper-item>${entity}</paper-item>`;
             })}
           </paper-listbox>
         </paper-dropdown-menu>
@@ -178,7 +176,7 @@ export class PostenCardEditor extends LitElement implements LovelaceCardEditor {
       ) {
         const filterAwayKeys = [target.configValue];
         const filtered = Object.keys(this._config)
-          .filter(key => !filterAwayKeys.includes(key))
+          .filter((key) => !filterAwayKeys.includes(key))
           .reduce(
             (obj, key) => {
               return {

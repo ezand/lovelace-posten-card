@@ -1,7 +1,7 @@
 import * as en from './languages/en.json';
 import * as nb from './languages/nb.json';
 
-const languages: any = {
+const languages: Record<string, any> = {
   en: en,
   nb: nb,
 };

@@ -8,8 +8,4 @@ export const isDeliveryToday = (deliveryDay: Moment): boolean =>
   deliveryDay.startOf('day').diff(moment().startOf('day')) === 0;
 
 export const isDeliveryTommorow = (deliveryDay: Moment): boolean =>
-  deliveryDay.startOf('day').diff(
-    moment()
-      .add(1, 'day')
-      .startOf('day'),
-  ) === 0;
+  deliveryDay.startOf('day').diff(moment().add(1, 'day').startOf('day')) === 0;
