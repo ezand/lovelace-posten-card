@@ -1,5 +1,6 @@
 {
   "name": "Posten Card",
   "render_readme": true,
-  "filename": "posten-card.js"
+  "filename": "posten-card.js",
+  "country": "NO"
 }
